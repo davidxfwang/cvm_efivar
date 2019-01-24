@@ -1,0 +1,54 @@
+PREFIX	?= /usr
+EXEC_PREFIX ?= $(PREFIX)
+LIBDIR	?= $(PREFIX)/lib64
+DATADIR	?= $(PREFIX)/share
+MANDIR	?= $(DATADIR)/man
+INCLUDEDIR ?= $(PREFIX)/include
+BINDIR	?= $(EXEC_PREFIX)/bin
+PCDIR	?= $(LIBDIR)/pkgconfig
+DESTDIR	?=
+
+INSTALL ?= install
+CROSS_COMPILE	?=
+COMPILER ?= gcc
+PKG_CONFIG = $(shell if [ -e "$$(env $(CROSS_COMPILE)pkg-config 2>&1)" ]; then echo $(CROSS_COMPILE)pkg-config ; else echo pkg-config ; fi)
+CC_FOR_BUILD	?= cc
+CC	:= $(if $(filter default,$(origin CC)),$(CROSS_COMPILE)$(COMPILER),$(CC))
+CCLD_FOR_BUILD	?= $(CC_FOR_BUILD)
+CCLD	:= $(if $(filter undefined,$(origin CCLD)),$(CC),$(CCLD))
+OPTIMIZE ?= -O2 -flto
+CFLAGS	?= $(OPTIMIZE) -g3
+CFLAGS	:= $(CFLAGS)
+LDFLAGS ?=
+LDFLAGS := $(LDFLAGS)
+AR	:= $(CROSS_COMPILE)$(COMPILER)-ar
+NM	:= $(CROSS_COMPILE)$(COMPILER)-nm
+RANLIB	:= $(CROSS_COMPILE)$(COMPILER)-ranlib
+ABIDW	:= abidw
+ABIDIFF := abidiff
+
+PKGS	=
+
+clang_cflags = -D_GNU_SOURCE -std=gnu11 -Wno-address-of-packed-member
+gcc_cflags = -specs=$(TOPDIR)/gcc.specs
+cflags	= $(CFLAGS) -I${TOPDIR}/src/include/ \
+	$(if $(findstring clang,$(CC)),$(clang_cflags),) \
+	$(if $(findstring ccc-analyzer,$(CC)),$(clang_cflags),) \
+	$(if $(findstring gcc,$(CC)),$(gcc_cflags),) \
+	$(call pkg-config-cflags)
+clang_ccldflags =
+gcc_ccldflags =
+ccldflags = $(cflags) -L. $(CCLDFLAGS) $(LDFLAGS) \
+	-Wl,-z,muldefs \
+	$(if $(findstring clang,$(CCLD)),$(clang_ccldflags),) \
+	$(if $(findstring ccc-analyzer,$(CCLD)),$(clang_ccldflags),) \
+	$(if $(findstring gcc,$(CCLD)),$(gcc_ccldflags),) \
+	$(call pkg-config-ldflags)
+SOFLAGS=-shared
+LDLIBS=$(foreach lib,$(LIBS),-l$(lib)) $(call pkg-config-ldlibs)
+
+COMMIT_ID=$(shell git log -1 --pretty=%H 2>/dev/null || echo master)
+
+NAME=efivar
+
+# vim:ft=make
