@@ -1,0 +1,30 @@
+TO COMPILE:
+   under efivar/, issue make. efivar is the execute binary.
+
+TO ACCESS:
+
+   1. Original efivar access is still the same, apply to all variables, include Cavium specific varialbes.
+   2. For Cavium specific variables, a new cli command syntax has been added
+
+      To access Cavium specific variables, using new implemnented switches, no guid number is needed. Only specify the variable name.
+
+      To read CvmCppcCtl
+	  efivar -p -N CvmCppcCtl
+      To write to CvmCppcCtl
+          efivar -N CvmCppcCtl -w -s enable
+          efivar -N CvmCppcCtl -w -s disable
+
+      To read CvmTurbo
+          efivar -p -N CvmTurbo
+      To write to CvmTurbo
+          efivar -N CvmTurbo -w -s 0 
+          efivar -N CvmTurbo -w -s 1 
+          efivar -N CvmTurbo -w -s 2 
+
+      To read CvmHyperThread
+          efivar -p -N CvmHyperThread
+      To write to CvmHyperThread
+          efivar -N CvmHyperThread -w -s 0
+          efivar -N CvmHyperThread -w -s 1
+          efivar -N CvmHyperThread -w -s 2
+          efivar -N CvmHyperThread -w -s 4
